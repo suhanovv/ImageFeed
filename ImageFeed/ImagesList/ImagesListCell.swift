@@ -10,9 +10,17 @@ import UIKit
 final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
     
-    @IBOutlet weak var cellImage: UIImageView!
-    @IBOutlet weak var imageDate: UILabel!
-    @IBOutlet weak var isLikedStatus: UIButton!
+    private lazy var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter
+    }() 
+    
+    @IBOutlet private weak var cellImage: UIImageView!
+    @IBOutlet private weak var imageDate: UILabel!
+    @IBOutlet private weak var isLikedStatus: UIButton!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -20,6 +28,9 @@ final class ImagesListCell: UITableViewCell {
         cellImage.layer.masksToBounds = true
     }
     
-    
-    
+    func configure(with image: UIImage, and date: Date, and isLikedStatusImage: UIImage) {
+        cellImage.image = image
+        imageDate.text = dateFormatter.string(from: date)
+        isLikedStatus.setImage(isLikedStatusImage, for: .normal)
+    }
 }

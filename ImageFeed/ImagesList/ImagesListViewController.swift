@@ -7,15 +7,10 @@
 
 import UIKit
 
-class ImagesListViewController: UIViewController {
+final class ImagesListViewController: UIViewController {
     
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter
-    }() 
+    
     
     @IBOutlet private var tableView: UITableView!
 
@@ -29,16 +24,12 @@ class ImagesListViewController: UIViewController {
     }
     
     func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
-        cell.cellImage.image = UIImage(named: photosName[indexPath.row])
-        cell.imageDate.text = dateFormatter.string(from: Date())
-        let buttonStatus: String
+        guard let cellImage = UIImage(named: photosName[indexPath.row]) else { return }
+        guard let likeStatusImage = UIImage(
+            named: indexPath.row % 2 == 0 ? "like_button_off" : "like_button_on"
+        ) else { return }
         
-        if indexPath.row % 2 == 0 {
-            buttonStatus = "like_button_off"
-        } else {
-            buttonStatus = "like_button_on"
-        }
-        cell.isLikedStatus.setImage(UIImage(named: buttonStatus), for: .normal)
+        cell.configure(with: cellImage, and: Date(), and: likeStatusImage)
     }
 }
 
@@ -48,26 +39,19 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
+        guard let imageListCell = tableView.dequeueReusableCell(
             withIdentifier: ImagesListCell.reuseIdentifier,
             for: indexPath
-        )
-        
-        guard let imageListCell = cell as? ImagesListCell else {
+        ) as? ImagesListCell else {
             return UITableViewCell()
         }
         
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
     }
-
-    
 }
 
 extension ImagesListViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         guard let image = UIImage(named: photosName[indexPath.row]) else {
@@ -77,10 +61,12 @@ extension ImagesListViewController: UITableViewDelegate {
         let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
         let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
         let imageWidth = image.size.width
+        if imageWidth == 0 {
+            return 0
+        }
         let scale = imageViewWidth / imageWidth
         let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
         
         return cellHeight
-        
     }
 }
