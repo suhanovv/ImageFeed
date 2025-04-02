@@ -7,10 +7,11 @@
 
 import UIKit
 
+// MARK: - ImagesListViewController
+
 final class ImagesListViewController: UIViewController {
-    
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
-    
+    private let showSingleImageSegueIdentifier: String = "ShowSingleImage"
     
     @IBOutlet private var tableView: UITableView!
 
@@ -20,7 +21,6 @@ final class ImagesListViewController: UIViewController {
         tableView.dataSource = self
         tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
-        
     }
     
     func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
@@ -31,7 +31,26 @@ final class ImagesListViewController: UIViewController {
         
         cell.configure(with: cellImage, and: Date(), and: likeStatusImage)
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == showSingleImageSegueIdentifier {
+            guard
+                let viewController = segue.destination as? SingleImageViewController,
+                let indexPath = sender as? IndexPath
+            else {
+                assertionFailure("Invalid Segue destination")
+                return
+            }
+            
+            let image = UIImage(named: photosName[indexPath.row])
+            viewController.setImage(image: image)
+        } else {
+            super.prepare(for: segue, sender: sender)
+        }
+    }
 }
+
+// MARK: - UITableViewDataSource
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -51,6 +70,8 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 }
 
+// MARK: UITableViewDelegate
+
 extension ImagesListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -68,5 +89,9 @@ extension ImagesListViewController: UITableViewDelegate {
         let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
         
         return cellHeight
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
 }
