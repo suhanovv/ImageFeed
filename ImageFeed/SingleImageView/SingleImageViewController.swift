@@ -18,8 +18,8 @@ final class SingleImageViewController: UIViewController {
             rescaleAndCenterImageInScrollView(image: image)
         }
     }
-    @IBOutlet private var imageView: UIImageView!
-    @IBOutlet private var scrollView: UIScrollView!
+    @IBOutlet private weak var imageView: UIImageView!
+    @IBOutlet private weak var scrollView: UIScrollView!
     
     @IBAction private func didTapBackButton() {
         dismiss(animated: true, completion: nil)
