@@ -14,34 +14,46 @@ enum NetworkError: Error {
 }
 
 extension URLSession {
+    
     func dataTask(for request: URLRequest, completion: @escaping (Result<Data, Error>) -> Void) -> URLSessionTask {
-        let fulfillCompletionOnTheMainThread: (Result<Data, Error>) -> Void = { result in
-            DispatchQueue.main.async {
-                completion(result)
+            let task = dataTask(with: request) { data, response, error in
+                let result = Self.processResponse(data: data, response: response, error: error)
+                DispatchQueue.main.async {
+                    completion(result)
+                }
+            }
+            return task
+    }
+    
+    private static func processResponse(data: Data?, response: URLResponse?, error: Error?) -> Result<Data, Error> {
+        if let error = error {
+            logError(error, data: data)
+            return .failure(NetworkError.urlRequestError(error))
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("URL Session Error — missing response")
+            return .failure(NetworkError.urlSessionError)
+        }
+
+        let statusCode = httpResponse.statusCode
+
+        guard (200..<300).contains(statusCode), let data = data else {
+            if let data = data, let dataString = String(data: data, encoding: .utf8) {
+                print("Response data: \(dataString)")
+            }
+            return .failure(NetworkError.httpStatusCode(statusCode))
+        }
+
+        return .success(data)
+    }
+    
+    private static func logError(_ error: Error, data: Data?) {
+            if let data = data, let string = String(data: data, encoding: .utf8) {
+                print("Response data: \(string) with Error: \(error.localizedDescription)")
+            } else {
+                print("Error: \(error.localizedDescription)")
             }
         }
 
-        let task = dataTask(with: request, completionHandler: { data, response, error in
-            if let data = data, let response = response, let statusCode = (response as? HTTPURLResponse)?.statusCode {
-                if 200 ..< 300 ~= statusCode {
-                    fulfillCompletionOnTheMainThread(.success(data))
-                } else {
-                    if let dataString = String(data: data, encoding: .utf8) {
-                        print("Response data: \(dataString)")
-                    }
-                    fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
-                }
-            } else if let error = error {
-                if let data, let dataString = String(data: data, encoding: .utf8) {
-                    print("Response data: \(dataString) with Error: \(error.localizedDescription)")
-                }
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
-            } else {
-                print("URL Session Error")
-                fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
-            }
-        })
-
-        return task
-    }
 }

@@ -7,24 +7,39 @@
 
 import UIKit
 
+// MARK: - Delegate Protocols
+
 protocol AuthViewControllerDelegate: AnyObject {
     func didAuthenticate(_ vc: AuthViewController)
 }
 
+// MARK: - AuthViewController
 
 final class AuthViewController: UIViewController {
+    // MARK: - Constants
+    private enum Constants {
+        static let logoImageName: String = "Logo_of_Unsplash"
+        static let backButtonImageName : String = "nav_back_button_black"
+        static let loginButtonTitle: String = "Войти"
+    }
+    
+    // MARK: - Properties
+    
     private var oauth2TokenStorage: OAuth2TokenStorage = OAuth2TokenStorage()
     private let oauth2Service = OAuth2Service.shared
+    weak var delegate: AuthViewControllerDelegate?
     
-    //MARK: UI Elements
+    //MARK: - UI Elements
+    
     private lazy var logoImageView: UIImageView = {
-        let view = UIImageView(image: UIImage(named: "Logo_of_Unsplash"))
+        let view = UIImageView(image: UIImage(named: Constants.logoImageName))
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+    
     private lazy var loginButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Вход", for: .normal)
+        button.setTitle(Constants.loginButtonTitle, for: .normal)
         button.tintColor = .ypBlack
         button.backgroundColor = .ypWhite
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
@@ -33,10 +48,9 @@ final class AuthViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
-    weak var delegate: AuthViewControllerDelegate?
 
-    // MARK: Life cycle
+    // MARK: - Life cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypBlack
@@ -45,7 +59,8 @@ final class AuthViewController: UIViewController {
         configureBackButton()
     }
     
-    //MARK: Configuration UI elements
+    //MARK: - Configuration UI elements
+    
     private func configureLogoImageView() {
         view.addSubview(logoImageView)
         
@@ -75,15 +90,14 @@ final class AuthViewController: UIViewController {
     }
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: "nav_back_button_black")
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "nav_back_button_black")
+        navigationController?.navigationBar.backIndicatorImage = UIImage(named: Constants.backButtonImageName)
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: Constants.backButtonImageName)
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = .ypBlack
     }
 }
 
-
-//MARK: WebViewViewControllerDelegate
+//MARK: - WebViewViewControllerDelegate
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         navigationController?.popViewController(animated: true)
@@ -97,8 +111,5 @@ extension AuthViewController: WebViewViewControllerDelegate {
                 print("Error fetching token: \(error)")
             }
         }
-        
     }
-
 }
-

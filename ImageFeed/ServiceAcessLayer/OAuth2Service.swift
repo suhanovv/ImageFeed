@@ -17,6 +17,9 @@ struct OAuthTokenResponseBody: Decodable {
 
 
 final class OAuth2Service {
+    private enum HTTPMethod: String {
+        case post = "POST"
+    }
     static let shared = OAuth2Service()
     private init() {}
     
@@ -43,7 +46,7 @@ final class OAuth2Service {
     }
     
     private func makeOAuthTokenRequest(code: String) -> URLRequest? {
-        guard var urlComponents = URLComponents(string: "https://unsplash.com/oauth/token") else {
+        guard var urlComponents = URLComponents(string: Constants.oauthTokenURL) else {
             print("Error creating URLComponents")
             return nil
         }
@@ -58,9 +61,9 @@ final class OAuth2Service {
             print("Error creating URL")
             return nil
         }
-        var requst = URLRequest(url: url)
-        requst.httpMethod = "POST"
-        return requst
+        var request = URLRequest(url: url)
+        request.httpMethod = HTTPMethod.post.rawValue
+        return request
     }
     
 }

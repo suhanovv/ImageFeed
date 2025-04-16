@@ -7,18 +7,22 @@
 
 import UIKit
 
+// MARK: - SplashViewController
 
 final class SplashViewController: UIViewController {
+    // MARK: - Properties
     private var oauth2TokenStorage: OAuth2TokenStorage = OAuth2TokenStorage()
     
-    //MARK: UI Elements
+    //MARK: - UI Elements
+    
     private lazy var logoImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "splash"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
-    //MARK: Life cycle
+    //MARK: - Life cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .ypBlack
@@ -36,8 +40,15 @@ final class SplashViewController: UIViewController {
         }
     }
     
+    // MARK: - Show Areas
+    
     private func showAuthorizedArea() {
-        guard let window = UIApplication.shared.windows.first else { fatalError("Invalid Configuration") }
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            assertionFailure("Unable to get UIWindow")
+            return
+        }
+        
         let tabBarViewController = UIStoryboard(name: "Main", bundle: .main)
             .instantiateViewController(withIdentifier: "TabBarViewController")
         window.rootViewController = tabBarViewController
@@ -62,7 +73,8 @@ final class SplashViewController: UIViewController {
         self.show(authNavigationViewController, sender: self)
     }
     
-    //MARK: Configure UI Elements
+    //MARK: - Configure UI Elements
+    
     private func configureLogoImageView() {
         view.addSubview(logoImageView)
         
@@ -74,7 +86,8 @@ final class SplashViewController: UIViewController {
 }
 
 
-//MARK: AuthViewControllerDelegate
+//MARK: - AuthViewControllerDelegate
+
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         self.showAuthorizedArea()
