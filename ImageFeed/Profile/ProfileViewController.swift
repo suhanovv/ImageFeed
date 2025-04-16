@@ -10,13 +10,13 @@ import UIKit
 // MARK: - ProfileViewController
 
 final class ProfileViewController: UIViewController {
-    private var avatarImageView: UIImageView = {
+    private lazy var avatarImageView: UIImageView = {
         
         let imageView = UIImageView(image: UIImage(named: "Avatar"))
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
-    private var nameLabel: UILabel = {
+    private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.text = "Екатерина Новикова"
         label.font = UIFont.systemFont(ofSize: 23, weight: .bold)
@@ -24,7 +24,7 @@ final class ProfileViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    private var loginNameLabel: UILabel = {
+    private lazy var loginNameLabel: UILabel = {
         let label = UILabel()
         label.text = "@ekaterina_novikova"
         label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
@@ -32,7 +32,7 @@ final class ProfileViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    private var descriptionLabel: UILabel = {
+    private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Hello world"
         label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
@@ -40,14 +40,13 @@ final class ProfileViewController: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    private var logoutButton: UIButton = {
+    private lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: "exit_button") ?? UIImage(), for: .normal)
         button.tintColor = .ypRed
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
