@@ -6,14 +6,28 @@
 //
 
 import UIKit
+import Kingfisher
+import SwiftKeychainWrapper
 
 // MARK: - ProfileViewController
 
 final class ProfileViewController: UIViewController {
+    // MARK: - Properties
+    
+    private var profileService: ProfileService = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
+    
+    // MARK: - UI elements
+    
     private lazy var avatarImageView: UIImageView = {
-        
-        let imageView = UIImageView(image: UIImage(named: "Avatar"))
+        let imageView = UIImageView(
+            image: UIImage(systemName: "person.crop.circle.fill")?
+                .withTintColor(.ypGray, renderingMode: .alwaysOriginal)
+        )
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.layer.cornerRadius = 35
+        imageView.clipsToBounds = true
+        
         return imageView
     }()
     private lazy var nameLabel: UILabel = {
@@ -48,9 +62,30 @@ final class ProfileViewController: UIViewController {
         return button
     }()
     
+    // MARK: - Life Cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupAppearance()
+        setupLayout()
         
+        subscribeToAvatarUpdates()
+        
+        updateProfileData()
+        updateAvatar()
+        
+    }
+    
+    // MARK: - actions
+    
+    @objc private func didTapLogoutButton() {}
+    
+    // MARK: - Setup UI Elements
+    
+    private func setupAppearance() {
+        view.backgroundColor = .ypBlack
+    }
+    private func setupLayout() {
         makeAvatarView()
         makeLogoutButton()
         makeNameLabel()
@@ -58,20 +93,16 @@ final class ProfileViewController: UIViewController {
         makeDescriptionLabel()
     }
     
-    // MARK: - actions
-    
-    @objc private func didTapLogoutButton() {}
-    
-    // MARK: - element constructors
-    
     private func makeAvatarView() {
         view.addSubview(avatarImageView)
+        
         NSLayoutConstraint.activate([
             avatarImageView.widthAnchor.constraint(equalToConstant: 70),
             avatarImageView.heightAnchor.constraint(equalTo: avatarImageView.widthAnchor, multiplier: 1),
             avatarImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16)
         ])
+    
     }
     
     private func makeLogoutButton() {
@@ -111,7 +142,39 @@ final class ProfileViewController: UIViewController {
             descriptionLabel.leadingAnchor.constraint(equalTo: loginNameLabel.leadingAnchor),
             descriptionLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor)
         ])
-        
     }
-        
+    
+    // MARK: - Profile and Avatar update handlers
+    
+    private func subscribeToAvatarUpdates() {
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                self.updateAvatar()
+            }
+    }
+    
+    private func updateProfileData() {
+        guard let profile = profileService.profile else {
+            return
+        }
+        nameLabel.text = profile.fullName
+        loginNameLabel.text = profile.loginName
+        descriptionLabel.text = profile.bio
+    }
+    
+    private func updateAvatar() {
+        guard let profileImageURL = ProfileImageService.shared.avatarURL,
+              let url = URL(string: profileImageURL)
+        else { return }
+        Logger.info("Updating avatar from \(url)")
+        avatarImageView.kf.setImage(
+            with: url
+        )
+    }
 }
+
