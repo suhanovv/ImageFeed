@@ -7,7 +7,7 @@
 
 import Foundation
 
-class Logger {
+final class Logger {
     static func error(_ error: Error, data: Data? = nil, in caller: String = #function) {
         if let data = data, let string = String(data: data, encoding: .utf8) {
             print("ERROR: [\(caller)]: \(error.localizedDescription) with DATA: \(string)")

@@ -17,12 +17,12 @@ enum ProfileImageServiceErrors: Error {
 
 // MARK: - Response Objects
 
-struct ProfileImageResponse: Codable {
-    var large: String
+struct ProfileImageResponse: Decodable {
+    let large: String
 }
 
-struct PublicProfileResponse: Codable {
-    var profileImage: ProfileImageResponse
+struct PublicProfileResponse: Decodable {
+    let profileImage: ProfileImageResponse
 }
 
 // MARK: - ProfileImageService

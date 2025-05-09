@@ -8,16 +8,16 @@
 import Foundation
 
 struct Profile {
-    var username: String
-    var firstName: String
-    var lastName: String
+    let username: String
+    let firstName: String
+    let lastName: String?
     var fullName: String {
-        "\(firstName) \(lastName)"
+        "\(firstName) \(lastName ?? "")"
     }
     var loginName: String {
         "@\(username)"
     }
-    var bio: String
+    let bio: String?
     
     init(from profileResponse: ProfileResponse) {
         username = profileResponse.username

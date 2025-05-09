@@ -17,11 +17,11 @@ enum ProfileServiceError: Error {
 
 // MARK: - Response Object
 
-struct ProfileResponse: Codable {
-    var username: String
-    var firstName: String
-    var lastName: String
-    var bio: String
+struct ProfileResponse: Decodable {
+    let username: String
+    let firstName: String
+    let lastName: String?
+    let bio: String?
 }
 
 // MARK: - ProfileService

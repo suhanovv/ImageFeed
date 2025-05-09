@@ -26,7 +26,7 @@ extension URLSession {
         return task
     }
     
-    func objectTask<T: Codable>(for request: URLRequest, completion: @escaping (Result<T, Error>) -> Void) -> URLSessionTask {
+    func objectTask<T: Decodable>(for request: URLRequest, completion: @escaping (Result<T, Error>) -> Void) -> URLSessionTask {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let task = dataTask(for: request) { (result: Result<Data, Error>) in

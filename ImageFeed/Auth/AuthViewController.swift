@@ -19,8 +19,6 @@ protocol AuthViewControllerDelegate: AnyObject {
 final class AuthViewController: UIViewController {
     // MARK: - Constants
     private enum AuthViewControllerConstants {
-        static let logoImageName: String = "Logo_of_Unsplash"
-        static let backButtonImageName : String = "nav_back_button_black"
         static let loginButtonTitle: String = "Войти"
         static let errorAlertTitle: String = "Что-то пошло не так"
         static let errorAlertMessage: String = "Не удалось войти в систему"
@@ -34,7 +32,7 @@ final class AuthViewController: UIViewController {
     //MARK: - UI Elements
     
     private lazy var logoImageView: UIImageView = {
-        let view = UIImageView(image: UIImage(named: AuthViewControllerConstants.logoImageName))
+        let view = UIImageView(image: UIImage(resource: .logoOfUnsplash))
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
@@ -92,8 +90,10 @@ final class AuthViewController: UIViewController {
     }
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: AuthViewControllerConstants.backButtonImageName)
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: AuthViewControllerConstants.backButtonImageName)
+        navigationController?.navigationBar.backIndicatorImage = UIImage(
+            resource: .navBackButtonBlack)
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(
+            resource: .navBackButtonBlack)
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = .ypBlack
     }
