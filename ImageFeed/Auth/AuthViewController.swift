@@ -53,13 +53,21 @@ final class AuthViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupAppearance()
+        setupLayout()
+    }
+    
+    //MARK: - Configuration UI elements
+    
+    private func setupAppearance() {
         view.backgroundColor = .ypBlack
+    }
+    
+    private func setupLayout() {
         configureLogoImageView()
         configureLoginButton()
         configureBackButton()
     }
-    
-    //MARK: - Configuration UI elements
     
     private func configureLogoImageView() {
         view.addSubview(logoImageView)

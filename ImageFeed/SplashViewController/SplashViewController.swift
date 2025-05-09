@@ -28,7 +28,7 @@ final class SplashViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .ypBlack
+        setupAppearance()
         
         configureLogoImageView()
     }
@@ -53,9 +53,9 @@ final class SplashViewController: UIViewController {
             return
         }
         
-        let tabBarViewController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarViewController")
+        let tabBarViewController = TabBarController()
         window.rootViewController = tabBarViewController
+        
         UIView
             .transition(
                 with: window,
@@ -67,17 +67,21 @@ final class SplashViewController: UIViewController {
     }
     
     private func showUnauthorizedArea() {
-        let authNavigationViewController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "AuthNavigationViewController")
-        authNavigationViewController.modalPresentationStyle = .fullScreen
-   
-        let authViewController = authNavigationViewController.children.first as? AuthViewController
-        authViewController?.delegate = self
+        let navigationViewController = UINavigationController()
+        navigationViewController.modalPresentationStyle = .fullScreen
         
-        self.show(authNavigationViewController, sender: self)
+        let authViewController = AuthViewController()
+        authViewController.delegate = self
+        navigationViewController.viewControllers = [authViewController]
+        
+        self.show(navigationViewController, sender: self)
     }
     
     // MARK: - Configure UI Elements
+    
+    private func setupAppearance() {
+        view.backgroundColor = .ypBlack
+    }
     
     private func configureLogoImageView() {
         view.addSubview(logoImageView)
