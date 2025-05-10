@@ -10,20 +10,52 @@ import UIKit
 // MARK: - ImagesListViewController
 
 final class ImagesListViewController: UIViewController {
+    
+    // MARK: - Props
+    
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     private let showSingleImageSegueIdentifier: String = "ShowSingleImage"
     
-    @IBOutlet private weak var tableView: UITableView!
+    // MAKR: UI Elements
+    
+    private lazy var tableView: UITableView = {
+        let view = UITableView(frame: .zero, style: .plain)
+        view.backgroundColor = .ypBlack
+        
+        view.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
+        view.delegate = self
+        view.dataSource = self
+        view.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
+    // MARK: - Life Cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.rowHeight = 200
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        
+        setupAppearance()
+        setupTableView()
     }
     
-    func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
+    // MARK: - Configuration
+    
+    private func setupAppearance() {
+        view.backgroundColor = .ypBlack
+    }
+    
+    private func setupTableView() {
+        view.addSubview(tableView)
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+    }
+    
+    private func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
         guard let cellImage = UIImage(named: photosName[indexPath.row]) else { return }
         guard let likeStatusImage = UIImage(
             named: indexPath.row % 2 == 0 ? "like_button_off" : "like_button_on"
@@ -32,21 +64,13 @@ final class ImagesListViewController: UIViewController {
         cell.configure(with: cellImage, and: Date(), and: likeStatusImage)
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == showSingleImageSegueIdentifier {
-            guard
-                let viewController = segue.destination as? SingleImageViewController,
-                let indexPath = sender as? IndexPath
-            else {
-                assertionFailure("Invalid Segue destination")
-                return
-            }
-            
-            let image = UIImage(named: photosName[indexPath.row])
-            viewController.setImage(image: image)
-        } else {
-            super.prepare(for: segue, sender: sender)
-        }
+    private func showSingleImage(for indexPath: IndexPath) {
+        let viewController = SingleImageViewController()
+        let image = UIImage(named: photosName[indexPath.row])
+        viewController.setImage(image: image)
+        viewController.modalPresentationStyle = .fullScreen
+        present(viewController, animated: true)
+        
     }
 }
 
@@ -70,7 +94,7 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 }
 
-// MARK: UITableViewDelegate
+// MARK: - UITableViewDelegate
 
 extension ImagesListViewController: UITableViewDelegate {
     
@@ -92,6 +116,6 @@ extension ImagesListViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
+        showSingleImage(for: indexPath)
     }
 }

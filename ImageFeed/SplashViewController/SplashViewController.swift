@@ -6,12 +6,15 @@
 //
 
 import UIKit
+import SwiftKeychainWrapper
 
 // MARK: - SplashViewController
 
 final class SplashViewController: UIViewController {
     // MARK: - Properties
-    private var oauth2TokenStorage: OAuth2TokenStorage = OAuth2TokenStorage()
+    
+    private var oauth2TokenStorage = KeychainWrapper.standard
+    private var profileService: ProfileService = ProfileService.shared
     
     //MARK: - UI Elements
     
@@ -21,11 +24,11 @@ final class SplashViewController: UIViewController {
         return imageView
     }()
     
-    //MARK: - Life cycle
+    // MARK: - Life cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .ypBlack
+        setupAppearance()
         
         configureLogoImageView()
     }
@@ -33,11 +36,12 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if oauth2TokenStorage.token != nil {
-            showAuthorizedArea()
-        } else {
+        guard let token = oauth2TokenStorage.string(forKey: Constants.keychainOAuthTokenKeyName) else {
             showUnauthorizedArea()
+            return
         }
+        
+        fetchProfile(token)
     }
     
     // MARK: - Show Areas
@@ -49,9 +53,9 @@ final class SplashViewController: UIViewController {
             return
         }
         
-        let tabBarViewController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarViewController")
+        let tabBarViewController = TabBarController()
         window.rootViewController = tabBarViewController
+        
         UIView
             .transition(
                 with: window,
@@ -63,17 +67,21 @@ final class SplashViewController: UIViewController {
     }
     
     private func showUnauthorizedArea() {
-        let authNavigationViewController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "AuthNavigationViewController")
+        let navigationViewController = UINavigationController()
+        navigationViewController.modalPresentationStyle = .fullScreen
         
-        authNavigationViewController.modalPresentationStyle = .fullScreen
-        let authViewController = authNavigationViewController.children.first as? AuthViewController
-        authViewController?.delegate = self
+        let authViewController = AuthViewController()
+        authViewController.delegate = self
+        navigationViewController.viewControllers = [authViewController]
         
-        self.show(authNavigationViewController, sender: self)
+        self.show(navigationViewController, sender: self)
     }
     
-    //MARK: - Configure UI Elements
+    // MARK: - Configure UI Elements
+    
+    private func setupAppearance() {
+        view.backgroundColor = .ypBlack
+    }
     
     private func configureLogoImageView() {
         view.addSubview(logoImageView)
@@ -86,10 +94,38 @@ final class SplashViewController: UIViewController {
 }
 
 
-//MARK: - AuthViewControllerDelegate
+// MARK: - AuthViewControllerDelegate
 
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
-        self.showAuthorizedArea()
+        
+        guard let token = oauth2TokenStorage.string(forKey: Constants.keychainOAuthTokenKeyName) else {
+            return
+        }
+        fetchProfile(token)
     }
+    
+    private func fetchProfile(_ token: String) {
+        UIBlockingProgressHUD.show()
+        profileService.fetchProfile(token) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            guard let self = self else { return }
+            switch result {
+            case .success(let profile):
+                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { _ in }
+                self.showAuthorizedArea()
+            case .failure(let error):
+                let alert = buildAllert(
+                    withTitle: "Что-то пошло не так",
+                    andMessage: "Не удалось загрузить профиль"
+                )
+                present(alert, animated: true)
+                Logger.error(error)
+                
+            }
+            
+        }
+        
+    }
+
 }

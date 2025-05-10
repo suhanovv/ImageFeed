@@ -7,47 +7,60 @@
 
 import Foundation
 
-struct OAuthTokenResponseBody: Decodable {
+struct OAuthTokenResponseBody: Codable {
     let accessToken: String
-    
-    private enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-    }
+}
+
+enum AuthServiceError: Error {
+    case invalidRequest
+    case makeRequestFailed
 }
 
 
 final class OAuth2Service {
-    private enum HTTPMethod: String {
-        case post = "POST"
-    }
     static let shared = OAuth2Service()
+    private let urlSession = URLSession.shared
+    private var task: URLSessionTask?
+    private var lastCode: String?
     private init() {}
     
     func fetchAuthToken(from code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let request = makeOAuthTokenRequest(code: code) else { return }
+        assert(Thread.isMainThread)
+        guard lastCode != code else {
+            Logger.error(AuthServiceError.invalidRequest)
+            completion(.failure(AuthServiceError.invalidRequest))
+            return
+        }
+        task?.cancel()
+        lastCode = code
         
-        let task = URLSession.shared.dataTask(for: request) { result in
+        guard let request = makeOAuthTokenRequest(code: code) else {
+            Logger.error(AuthServiceError.makeRequestFailed)
+            completion(.failure(AuthServiceError.makeRequestFailed))
+            return
+        }
+        
+        let task = urlSession.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
+            self?.task = nil
+            self?.lastCode = nil
+        
             switch result {
-            case .success(let data):
-                do {
-                    let response = try JSONDecoder().decode(OAuthTokenResponseBody.self, from: data)
-                    completion(.success(response.accessToken))
-                } catch {
-                    print("Decoding response body error: \(error)")
-                    completion(.failure(error))
-                }
-                
+            case .success(let tokenResponse):
+                completion(.success(tokenResponse.accessToken))
             case .failure(let error):
-                print("Error fetching token: \(error)")
+                Logger.error("Error fetching token: \(error)")
                 completion(.failure(error))
             }
         }
+        
+        self.task = task
+        
         task.resume()
     }
     
     private func makeOAuthTokenRequest(code: String) -> URLRequest? {
         guard var urlComponents = URLComponents(string: Constants.oauthTokenURL) else {
-            print("Error creating URLComponents")
+            Logger.error("Error creating URLComponents")
             return nil
         }
         urlComponents.queryItems = [
@@ -58,7 +71,7 @@ final class OAuth2Service {
             URLQueryItem(name: "redirect_uri", value: Constants.redirectUri)
         ]
         guard let url = urlComponents.url else {
-            print("Error creating URL")
+            Logger.error("Error creating URL")
             return nil
         }
         var request = URLRequest(url: url)

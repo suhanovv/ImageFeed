@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftKeychainWrapper
 
 // MARK: - Delegate Protocols
 
@@ -17,29 +18,28 @@ protocol AuthViewControllerDelegate: AnyObject {
 
 final class AuthViewController: UIViewController {
     // MARK: - Constants
-    private enum Constants {
-        static let logoImageName: String = "Logo_of_Unsplash"
-        static let backButtonImageName : String = "nav_back_button_black"
+    private enum AuthViewControllerConstants {
         static let loginButtonTitle: String = "Войти"
+        static let errorAlertTitle: String = "Что-то пошло не так"
+        static let errorAlertMessage: String = "Не удалось войти в систему"
     }
     
     // MARK: - Properties
     
-    private var oauth2TokenStorage: OAuth2TokenStorage = OAuth2TokenStorage()
     private let oauth2Service = OAuth2Service.shared
     weak var delegate: AuthViewControllerDelegate?
     
     //MARK: - UI Elements
     
     private lazy var logoImageView: UIImageView = {
-        let view = UIImageView(image: UIImage(named: Constants.logoImageName))
+        let view = UIImageView(image: UIImage(resource: .logoOfUnsplash))
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private lazy var loginButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle(Constants.loginButtonTitle, for: .normal)
+        button.setTitle(AuthViewControllerConstants.loginButtonTitle, for: .normal)
         button.tintColor = .ypBlack
         button.backgroundColor = .ypWhite
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
@@ -53,13 +53,21 @@ final class AuthViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupAppearance()
+        setupLayout()
+    }
+    
+    //MARK: - Configuration UI elements
+    
+    private func setupAppearance() {
         view.backgroundColor = .ypBlack
+    }
+    
+    private func setupLayout() {
         configureLogoImageView()
         configureLoginButton()
         configureBackButton()
     }
-    
-    //MARK: - Configuration UI elements
     
     private func configureLogoImageView() {
         view.addSubview(logoImageView)
@@ -90,8 +98,10 @@ final class AuthViewController: UIViewController {
     }
     
     private func configureBackButton() {
-        navigationController?.navigationBar.backIndicatorImage = UIImage(named: Constants.backButtonImageName)
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: Constants.backButtonImageName)
+        navigationController?.navigationBar.backIndicatorImage = UIImage(
+            resource: .navBackButtonBlack)
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(
+            resource: .navBackButtonBlack)
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = .ypBlack
     }
@@ -101,14 +111,20 @@ final class AuthViewController: UIViewController {
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         navigationController?.popViewController(animated: true)
+        UIBlockingProgressHUD.show()
         oauth2Service.fetchAuthToken(from: code) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
             guard let self = self else { return }
             switch result {
             case .success(let token):
-                oauth2TokenStorage.token = token
+                KeychainWrapper.standard.set(token, forKey: Constants.keychainOAuthTokenKeyName)
                 delegate?.didAuthenticate(self)
             case .failure(let error):
-                print("Error fetching token: \(error)")
+                Logger.error("Error fetching token: \(error)")
+                let alert = buildAllert(
+                    withTitle: AuthViewControllerConstants.errorAlertTitle,
+                    andMessage: AuthViewControllerConstants.errorAlertMessage)
+                present(alert, animated: true)
             }
         }
     }
