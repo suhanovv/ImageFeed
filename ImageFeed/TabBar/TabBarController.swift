@@ -16,9 +16,11 @@ final class TabBarController: UITabBarController {
     }
     
     private func setupAppearance() {
-        tabBar.barTintColor = .ypBlack
-        tabBar.tintColor = .ypWhite
-        tabBar.backgroundImage = UIImage()
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithOpaqueBackground()
+        tabBarAppearance.backgroundColor = .ypBlack
+        tabBarAppearance.stackedLayoutAppearance.selected.iconColor = .ypWhite
+        tabBar.standardAppearance = tabBarAppearance
     }
     
     private func configureViewControllers() {

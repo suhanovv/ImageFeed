@@ -23,14 +23,14 @@ final class SingleImageViewController: UIViewController {
     
     // MARK: - UI Elements
     
-    lazy private var imageView: UIImageView = {
+    private lazy var imageView: UIImageView = {
         let view = UIImageView()
         view.translatesAutoresizingMaskIntoConstraints = false
         
         return view
     }()
     
-    lazy private var scrollView: UIScrollView = {
+    private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
         view.minimumZoomScale = 0.1
         view.maximumZoomScale = 1.25
@@ -40,7 +40,7 @@ final class SingleImageViewController: UIViewController {
         return view
     }()
     
-    lazy private var backButton: UIButton = {
+    private lazy var backButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(named: "nav_back_button_white"), for: .normal)
         
@@ -48,7 +48,7 @@ final class SingleImageViewController: UIViewController {
         return button
     }()
     
-    private var shareButton: UIButton = {
+    private lazy var shareButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setImage(UIImage(named: "share_button"), for: .normal)
         

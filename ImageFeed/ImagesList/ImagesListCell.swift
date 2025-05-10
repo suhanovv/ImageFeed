@@ -22,7 +22,7 @@ final class ImagesListCell: UITableViewCell {
     
     // MARK: - UI elements
     
-    private var cellImage: UIImageView = {
+    private lazy var cellImage: UIImageView = {
         let view = UIImageView()
         view.contentMode = .scaleAspectFill
         view.layer.cornerRadius = 16
@@ -31,7 +31,7 @@ final class ImagesListCell: UITableViewCell {
         return view
     }()
     
-    private var imageDate: UILabel = {
+    private lazy var imageDate: UILabel = {
         let view = UILabel()
         view.textColor = .ypWhite
         view.font = .systemFont(ofSize: 13, weight: .regular)
@@ -39,7 +39,7 @@ final class ImagesListCell: UITableViewCell {
         return view
     }()
     
-    private var isLikedStatus: UIButton = {
+    private lazy var isLikedStatus: UIButton = {
         let view = UIButton()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -78,13 +78,33 @@ final class ImagesListCell: UITableViewCell {
 
     private func configureCellImage() {
         contentView.addSubview(cellImage)
-        NSLayoutConstraint.activate([
-            cellImage.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
-            cellImage.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            cellImage.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+        let topAndBottomPadding: CGFloat = 4
+        let leadingAndTrailingPadding: CGFloat = 16
+        
+        NSLayoutConstraint.activate(
+[
+            cellImage.topAnchor
+                .constraint(
+                    equalTo: contentView.topAnchor,
+                    constant: topAndBottomPadding
+                ),
+            cellImage.leadingAnchor
+                .constraint(
+                    equalTo: contentView.leadingAnchor,
+                    constant: leadingAndTrailingPadding
+                ),
+            cellImage.trailingAnchor
+                .constraint(
+                    equalTo: contentView.trailingAnchor,
+                    constant: -leadingAndTrailingPadding
+                ),
             cellImage.bottomAnchor
-                .constraint(equalTo: contentView.bottomAnchor, constant: -4),
-        ])
+                .constraint(
+                    equalTo: contentView.bottomAnchor,
+                    constant: -topAndBottomPadding
+                ),
+        ]
+)
     }
     
     private func configureImageDate() {
@@ -98,9 +118,12 @@ final class ImagesListCell: UITableViewCell {
     
     private func configureIsLikedStatus() {
         contentView.addSubview(isLikedStatus)
+        let highAndWidth: CGFloat = 44
+        
         NSLayoutConstraint.activate([
-            isLikedStatus.heightAnchor.constraint(equalToConstant: 44),
-            isLikedStatus.widthAnchor.constraint(equalToConstant: 44),
+            isLikedStatus.heightAnchor
+                .constraint(equalToConstant: highAndWidth),
+            isLikedStatus.widthAnchor.constraint(equalToConstant: highAndWidth),
             isLikedStatus.trailingAnchor.constraint(equalTo: cellImage.trailingAnchor),
             isLikedStatus.topAnchor.constraint(equalTo: cellImage.topAnchor),
         ])

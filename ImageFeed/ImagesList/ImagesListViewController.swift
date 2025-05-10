@@ -18,14 +18,13 @@ final class ImagesListViewController: UIViewController {
     
     // MAKR: UI Elements
     
-    lazy private var tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let view = UITableView(frame: .zero, style: .plain)
         view.backgroundColor = .ypBlack
         
         view.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
         view.delegate = self
         view.dataSource = self
-        view.rowHeight = 200
         view.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
