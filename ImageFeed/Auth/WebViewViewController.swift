@@ -113,7 +113,6 @@ final class WebViewViewController: UIViewController {
         )
     }
     
-
     private func updateProgress() {
         progressView.progress = Float(webView.estimatedProgress)
         progressView.isHidden = fabs(webView.estimatedProgress - 1) <= 0.001
@@ -157,12 +156,12 @@ extension WebViewViewController: WKNavigationDelegate {
     }
     
     private func code(from navigationAction: WKNavigationAction) -> String? {
-            guard
-                let url = navigationAction.request.url,
-                let components = URLComponents(string: url.absoluteString),
-                components.path == WebViewConstants.redirectPath
-            else { return nil }
+        guard
+            let url = navigationAction.request.url,
+            let components = URLComponents(string: url.absoluteString),
+            components.path == WebViewConstants.redirectPath
+        else { return nil }
 
-            return components.queryItems?.first(where: { $0.name == "code" })?.value
-        }
+        return components.queryItems?.first(where: { $0.name == "code" })?.value
+    }
 }

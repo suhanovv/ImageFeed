@@ -29,6 +29,7 @@ extension URLSession {
     func objectTask<T: Decodable>(for request: URLRequest, completion: @escaping (Result<T, Error>) -> Void) -> URLSessionTask {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
         let task = dataTask(for: request) { (result: Result<Data, Error>) in
             switch result {
             case .success(let data):

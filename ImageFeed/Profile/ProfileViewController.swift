@@ -7,7 +7,6 @@
 
 import UIKit
 import Kingfisher
-import SwiftKeychainWrapper
 
 // MARK: - ProfileViewController
 
@@ -16,6 +15,7 @@ final class ProfileViewController: UIViewController {
     
     private var profileService: ProfileService = ProfileService.shared
     private var profileImageServiceObserver: NSObjectProtocol?
+    private let profileLogoutService = ProfileLogoutService.shared
     
     // MARK: - UI elements
     
@@ -73,12 +73,48 @@ final class ProfileViewController: UIViewController {
         
         updateProfileData()
         updateAvatar()
-        
     }
     
     // MARK: - actions
     
-    @objc private func didTapLogoutButton() {}
+    @objc private func didTapLogoutButton() {
+        
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены что хотите выйти?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Да", style: .cancel, handler: { [weak self] _ in
+            self?.profileLogoutService.logout()
+            self?.showSplashScreen()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Нет", style: .default))
+        
+        present(alert, animated: true)
+        
+    }
+    
+    private func showSplashScreen() {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            assertionFailure("Unable to get UIWindow")
+            return
+        }
+        
+        let splashViewController = SplashViewController()
+        window.rootViewController = splashViewController
+        
+        UIView
+            .transition(
+                with: window,
+                duration: 0.3,
+                options: .transitionCrossDissolve,
+                animations: nil,
+                completion: nil
+            )
+    }
     
     // MARK: - Setup UI Elements
     
