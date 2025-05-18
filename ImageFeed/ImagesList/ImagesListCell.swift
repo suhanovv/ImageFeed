@@ -7,23 +7,22 @@
 
 import UIKit
 
+protocol ImagesListCellDelegate: AnyObject {
+    func imageListCellDidTapLike(_ cell: ImagesListCell)
+}
+
 // MARK: - ImagesListCell
 
 final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
-    
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter
-    }() 
+    weak var delegate: ImagesListCellDelegate?
     
     // MARK: - UI elements
     
     private lazy var cellImage: UIImageView = {
         let view = UIImageView()
+        view.image = UIImage(named: "Stub")
+        view.kf.indicatorType = .activity
         view.contentMode = .scaleAspectFill
         view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
@@ -57,12 +56,44 @@ final class ImagesListCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Life Cycle
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        cellImage.kf.cancelDownloadTask()
+    }
+    
     // MARK: - Configuration
     
-    func configure(with image: UIImage, and date: Date, and isLikedStatusImage: UIImage) {
-        cellImage.image = image
-        imageDate.text = dateFormatter.string(from: date)
-        isLikedStatus.setImage(isLikedStatusImage, for: .normal)
+    func configureWith(_ imageUrl: URL, andDate date: Date?, andIsLiked isLiked: Bool) {
+
+        cellImage.kf.setImage(
+            with: imageUrl,
+            placeholder: UIImage(named: "Stub"),
+            options: []
+        )
+        
+        if let date {
+            imageDate.text = date.imageCellDateString()
+        }
+        
+        isLikedStatus
+            .setImage(
+                UIImage(named: getIsLikedImageName(isLiked: isLiked)),
+                for: .normal
+            )
+    }
+    
+    func setIsLiked(isLiked: Bool) {
+        isLikedStatus.setImage(
+            UIImage(named: getIsLikedImageName(isLiked: isLiked)),
+            for: .normal
+        )
+    }
+    
+    private func getIsLikedImageName(isLiked: Bool) -> String {
+        return isLiked ? "like_button_on" : "like_button_off"
     }
     
     private func setupAppearance() {
@@ -81,8 +112,7 @@ final class ImagesListCell: UITableViewCell {
         let topAndBottomPadding: CGFloat = 4
         let leadingAndTrailingPadding: CGFloat = 16
         
-        NSLayoutConstraint.activate(
-[
+        NSLayoutConstraint.activate([
             cellImage.topAnchor
                 .constraint(
                     equalTo: contentView.topAnchor,
@@ -103,8 +133,7 @@ final class ImagesListCell: UITableViewCell {
                     equalTo: contentView.bottomAnchor,
                     constant: -topAndBottomPadding
                 ),
-        ]
-)
+        ])
     }
     
     private func configureImageDate() {
@@ -127,5 +156,12 @@ final class ImagesListCell: UITableViewCell {
             isLikedStatus.trailingAnchor.constraint(equalTo: cellImage.trailingAnchor),
             isLikedStatus.topAnchor.constraint(equalTo: cellImage.topAnchor),
         ])
+        
+        isLikedStatus.addTarget(self, action: #selector(likeButtonClicked), for: .touchUpInside)
+    }
+    
+    @objc private func likeButtonClicked() {
+        delegate?.imageListCellDidTapLike(self)
     }
 }
+

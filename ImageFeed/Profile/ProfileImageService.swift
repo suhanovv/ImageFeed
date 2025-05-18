@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftKeychainWrapper
 
 // MARK: - Errors
 
@@ -37,7 +36,7 @@ final class ProfileImageService {
     private let publicProfileApiURL = "/users/:username"
     private let urlSession = URLSession.shared
     private var task: URLSessionTask?
-    private var oauth2TokenStorage = KeychainWrapper.standard
+    private var oauth2TokenStorage = Oauth2TokenStorage.shared
     
     // MARK: Private Constructors
     
@@ -47,8 +46,7 @@ final class ProfileImageService {
     
     func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, Error>) -> Void) {
         assert(Thread.isMainThread)
-        guard let token = oauth2TokenStorage.string(forKey: Constants.keychainOAuthTokenKeyName) else {
-            Logger.error(ProfileImageServiceErrors.invalidToken)
+        guard let token = oauth2TokenStorage.token else {
             completion(.failure(ProfileImageServiceErrors.invalidToken))
             return
         }
@@ -82,6 +80,10 @@ final class ProfileImageService {
         
         self.task = task
         task.resume()
+    }
+    
+    func logout() {
+        avatarURL = nil
     }
     
     private func makeUrlRequestForImage(username: String, token: String) -> URLRequest? {

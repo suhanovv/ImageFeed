@@ -83,5 +83,10 @@ final class ProfileService {
         return request
     }
     
+    // MARK: - Logout
+    
+    func logout() {
+        profile = nil
+    }
 }
 

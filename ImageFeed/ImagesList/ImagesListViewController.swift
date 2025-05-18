@@ -15,6 +15,11 @@ final class ImagesListViewController: UIViewController {
     
     private let photosName: [String] = Array(0..<20).map{ "\($0)" }
     private let showSingleImageSegueIdentifier: String = "ShowSingleImage"
+    private let imageService = ImageListService.shared
+    
+    private var imageServiceObserver: NSObjectProtocol?
+    
+    private var photos: [Photo] = []
     
     // MAKR: UI Elements
     
@@ -37,6 +42,8 @@ final class ImagesListViewController: UIViewController {
         
         setupAppearance()
         setupTableView()
+        subscribeToImageServiceUpdates()
+        imageService.fetchPhotosNextPage()
     }
     
     // MARK: - Configuration
@@ -56,21 +63,36 @@ final class ImagesListViewController: UIViewController {
     }
     
     private func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
-        guard let cellImage = UIImage(named: photosName[indexPath.row]) else { return }
-        guard let likeStatusImage = UIImage(
-            named: indexPath.row % 2 == 0 ? "like_button_off" : "like_button_on"
-        ) else { return }
+        let photo = photos[indexPath.row]
         
-        cell.configure(with: cellImage, and: Date(), and: likeStatusImage)
+        guard let photoUrl = URL(string: photo.thumbImageURL) else { return }
+        cell
+            .configureWith(
+                photoUrl,
+                andDate: photo.createdAt,
+                andIsLiked: photo.isLiked
+            )
     }
     
     private func showSingleImage(for indexPath: IndexPath) {
         let viewController = SingleImageViewController()
-        let image = UIImage(named: photosName[indexPath.row])
-        viewController.setImage(image: image)
+        let photo = photos[indexPath.row]
+        guard let photoUrl = URL(string: photo.largeImageURL) else { return }
+        
+        viewController.setImage(imageUrl: photoUrl)
         viewController.modalPresentationStyle = .fullScreen
         present(viewController, animated: true)
-        
+    }
+    
+    private func subscribeToImageServiceUpdates() {
+        imageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ImageListService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.updateTableViewAnimated()
+            }
     }
 }
 
@@ -78,7 +100,7 @@ final class ImagesListViewController: UIViewController {
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return photosName.count
+        return photos.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -90,7 +112,32 @@ extension ImagesListViewController: UITableViewDataSource {
         }
         
         configCell(for: imageListCell, with: indexPath)
+        imageListCell.delegate = self
+        
         return imageListCell
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row + 1 == photos.count {
+            imageService.fetchPhotosNextPage()
+        }
+    }
+
+    func updateTableViewAnimated() {
+        let oldCount = photos.count
+        let newCount = imageService.photos.count
+        
+        if oldCount != newCount {
+            photos = imageService.photos
+            DispatchQueue.main.async { [weak self] in
+                self?.tableView.performBatchUpdates {
+                    let indexPaths = (oldCount..<newCount).map { i in
+                        IndexPath(row: i, section: 0)
+                    }
+                    self?.tableView.insertRows(at: indexPaths, with: .automatic)
+                } completion: { _ in }
+            }
+        }
     }
 }
 
@@ -99,23 +146,53 @@ extension ImagesListViewController: UITableViewDataSource {
 extension ImagesListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let image = UIImage(named: photosName[indexPath.row]) else {
-            return 0
-        }
-        
+        let photo = photos[indexPath.row]
+
         let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
         let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
-        let imageWidth = image.size.width
+        let imageWidth = photo.size.width
         if imageWidth == 0 {
             return 0
         }
         let scale = imageViewWidth / imageWidth
-        let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
+        let cellHeight = photo.size.height * scale + imageInsets.top + imageInsets.bottom
         
         return cellHeight
     }
+
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         showSingleImage(for: indexPath)
+    }
+}
+
+extension ImagesListViewController: ImagesListCellDelegate {
+    private enum LikeAllertCaptions {
+        static let title = "Что-то пошло не так"
+        static let message = "Не удалось изменить лайк"
+    }
+    
+    func imageListCellDidTapLike(_ cell: ImagesListCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        let photo = photos[indexPath.row]
+        UIBlockingProgressHUD.show()
+        imageService.changeLike(photoId: photo.id, isLike: !photo.isLiked) {[weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success:
+                self.photos = self.imageService.photos
+                cell.setIsLiked(isLiked: self.photos[indexPath.row].isLiked)
+                UIBlockingProgressHUD.dismiss()
+            case .failure(let error):
+                UIBlockingProgressHUD.dismiss()
+                let alert = buildAllert(
+                    withTitle: LikeAllertCaptions.title,
+                    andMessage: LikeAllertCaptions.message
+                )
+                present(alert, animated: true)
+                Logger.error("Error: \(error)")
+            }
+            
+        }
     }
 }
