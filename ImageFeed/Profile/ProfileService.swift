@@ -46,7 +46,7 @@ final class ProfileService {
         
         task?.cancel()
         
-        guard let request = makeUrlRequestForCurrentUserInfo(token: token) else {
+        guard let request = makeCurrentUserRequest(token: token) else {
             Logger.error(ProfileServiceError.makeRequestFailed)
             completion(.failure(ProfileServiceError.makeRequestFailed))
             return
@@ -71,7 +71,7 @@ final class ProfileService {
         task.resume()
     }
     
-    private func makeUrlRequestForCurrentUserInfo(token: String) -> URLRequest? {
+    private func makeCurrentUserRequest(token: String) -> URLRequest? {
         guard let defaultURL = Constants.defaultBaseURL else {
             return nil
         }

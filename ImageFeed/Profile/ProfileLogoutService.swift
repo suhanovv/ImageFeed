@@ -27,18 +27,15 @@ final class ProfileLogoutService {
     }
     
     private func cleanCookies() {
-        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
-        WKWebsiteDataStore
-            .default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
-                records.forEach { record in
-                    WKWebsiteDataStore
-                        .default()
-                        .removeData(
-                            ofTypes: record.dataTypes,
-                            for: [record],
-                            completionHandler: {})
-                }
-            }
+        HTTPCookieStorage.shared.removeCookies(since: .distantPast)
         
+        let dataStore = WKWebsiteDataStore.default()
+        let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+        
+        dataStore.fetchDataRecords(ofTypes: allTypes) { records in
+            records.forEach {
+                dataStore.removeData(ofTypes: $0.dataTypes, for: [$0], completionHandler: {})
+            }
+        }
     }
 }

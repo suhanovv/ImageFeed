@@ -23,7 +23,7 @@ private struct PhotosResponse: Decodable {
             id: id,
             size: CGSize(width: width, height: height),
             createdAt: createdAt,
-            welcomeDescription: description,
+            description: description,
             thumbImageURL: urls.thumb,
             largeImageURL: urls.full,
             isLiked: likedByUser
@@ -76,7 +76,7 @@ final class ImageListService {
         
         let pageNumber = getNextPageNumber()
         
-        guard let request = makeRequestForImageList(
+        guard let request = makeImageListRequest(
             forPageNumber: pageNumber,
             andPerPageCount: perPageCount,
             andToken: token
@@ -107,7 +107,7 @@ final class ImageListService {
         task.resume()
     }
     
-    private func makeRequestForImageList(forPageNumber pageNumber: Int, andPerPageCount perPageCount: Int, andToken token: String) -> URLRequest? {
+    private func makeImageListRequest(forPageNumber pageNumber: Int, andPerPageCount perPageCount: Int, andToken token: String) -> URLRequest? {
         
         guard
             let baseUrl = Constants.defaultBaseURL,
@@ -147,7 +147,7 @@ final class ImageListService {
             return
         }
         
-        guard let request = makeRequestForLikes(photoId: photoId, andToken: token, isLike: isLike) else {
+        guard let request = makeToggleLikeRequest(photoId: photoId, andToken: token, isLike: isLike) else {
             Logger.error("Error creating URLRequest for likes")
             return
         }
@@ -166,7 +166,7 @@ final class ImageListService {
         task.resume()
     }
     
-    private func makeRequestForLikes(photoId: String, andToken token: String, isLike: Bool) -> URLRequest? {
+    private func makeToggleLikeRequest(photoId: String, andToken token: String, isLike: Bool) -> URLRequest? {
         guard let defaultURL = Constants.defaultBaseURL else {
             return nil
         }
@@ -188,18 +188,7 @@ final class ImageListService {
     private func updateLike(photoId: String) {
         if let index = photos.firstIndex(where: { $0.id == photoId }) {
             let photo = photos[index]
-            
-            let newPhoto = Photo(
-               id: photo.id,
-               size: photo.size,
-               createdAt: photo.createdAt,
-               welcomeDescription: photo.welcomeDescription,
-               thumbImageURL: photo.thumbImageURL,
-               largeImageURL: photo.largeImageURL,
-               isLiked: !photo.isLiked
-            )
-            
-            photos[index] = newPhoto
+            photos[index] = photo.toggledLike()
         }
     }
     

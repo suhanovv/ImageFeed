@@ -58,7 +58,7 @@ final class WebViewViewController: UIViewController {
 
         setupAppearance()
         setupLayout()
-        setupVebView()
+        setupWebViewDelegate()
 
         loadAuthView()
         
@@ -71,11 +71,11 @@ final class WebViewViewController: UIViewController {
     }
     
     private func setupLayout() {
-        configureWebView()
-        configureProgressView()
+        setupWebView()
+        setupProgressView()
     }
     
-    private func setupVebView() {
+    private func setupWebViewDelegate() {
         webView.navigationDelegate = self
     }
     
@@ -120,7 +120,7 @@ final class WebViewViewController: UIViewController {
     
     //MARK: - Configuration UI Elements
     
-    private func configureProgressView() {
+    private func setupProgressView() {
         view.addSubview(progressView)
         NSLayoutConstraint.activate([
             progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -129,11 +129,10 @@ final class WebViewViewController: UIViewController {
         ])
     }
     
-    private func configureWebView() {
+    private func setupWebView() {
         view.addSubview(webView)
         NSLayoutConstraint.activate([
-            webView.topAnchor
-                .constraint(equalTo: view.topAnchor),
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
             webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)

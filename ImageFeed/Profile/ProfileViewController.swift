@@ -122,14 +122,14 @@ final class ProfileViewController: UIViewController {
         view.backgroundColor = .ypBlack
     }
     private func setupLayout() {
-        makeAvatarView()
-        makeLogoutButton()
-        makeNameLabel()
-        makeLoginLabel()
-        makeDescriptionLabel()
+        setupAvatarView()
+        setupLogoutButton()
+        setupNameLabel()
+        setupLoginLabel()
+        setupDescriptionLabel()
     }
     
-    private func makeAvatarView() {
+    private func setupAvatarView() {
         view.addSubview(avatarImageView)
         
         NSLayoutConstraint.activate([
@@ -141,7 +141,7 @@ final class ProfileViewController: UIViewController {
     
     }
     
-    private func makeLogoutButton() {
+    private func setupLogoutButton() {
         view.addSubview(logoutButton)
         NSLayoutConstraint.activate([
             logoutButton.widthAnchor.constraint(equalToConstant: 44),
@@ -153,7 +153,7 @@ final class ProfileViewController: UIViewController {
         logoutButton.addTarget(self, action: #selector(Self.didTapLogoutButton), for: .touchUpInside)
     }
     
-    private func makeNameLabel() {
+    private func setupNameLabel() {
         view.addSubview(nameLabel)
         NSLayoutConstraint.activate([
             nameLabel.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
@@ -162,7 +162,7 @@ final class ProfileViewController: UIViewController {
         ])
     }
     
-    private func makeLoginLabel() {
+    private func setupLoginLabel() {
         view.addSubview(loginNameLabel)
         NSLayoutConstraint.activate([
             loginNameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
@@ -171,7 +171,7 @@ final class ProfileViewController: UIViewController {
         ])
     }
     
-    private func makeDescriptionLabel() {
+    private func setupDescriptionLabel() {
         view.addSubview(descriptionLabel)
         NSLayoutConstraint.activate([
             descriptionLabel.topAnchor.constraint(equalTo: loginNameLabel.bottomAnchor, constant: 8),

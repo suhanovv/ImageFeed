@@ -13,7 +13,7 @@ final class ImagesListViewController: UIViewController {
     
     // MARK: - Props
     
-    private let photosName: [String] = Array(0..<20).map{ "\($0)" }
+//    private let photosName = (0..<20).map(String.init)
     private let showSingleImageSegueIdentifier: String = "ShowSingleImage"
     private let imageService = ImageListService.shared
     
@@ -68,9 +68,9 @@ final class ImagesListViewController: UIViewController {
         guard let photoUrl = URL(string: photo.thumbImageURL) else { return }
         cell
             .configureWith(
-                photoUrl,
-                andDate: photo.createdAt,
-                andIsLiked: photo.isLiked
+                imageUrl: photoUrl,
+                date: photo.createdAt,
+                isLiked: photo.isLiked
             )
     }
     

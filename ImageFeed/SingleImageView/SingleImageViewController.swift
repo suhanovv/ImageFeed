@@ -66,7 +66,7 @@ final class SingleImageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAppearance()
-        configureUI()
+        setupUI()
     }
     
     func setImage(imageUrl: URL) {
@@ -93,14 +93,14 @@ final class SingleImageViewController: UIViewController {
         view.backgroundColor = .ypBlack
     }
     
-    private func configureUI() {
-        configureScrollView()
-        configureImageView()
-        configureBackButton()
-        configureShareButton()
+    private func setupUI() {
+        setupScrollView()
+        setupImageView()
+        setupBackButton()
+        setupShareButton()
     }
     
-    private func configureScrollView() {
+    private func setupScrollView() {
         view.addSubview(scrollView)
         
         NSLayoutConstraint.activate([
@@ -112,11 +112,11 @@ final class SingleImageViewController: UIViewController {
         ])
     }
     
-    private func configureImageView() {
+    private func setupImageView() {
         scrollView.addSubview(imageView)
     }
     
-    private func configureBackButton() {
+    private func setupBackButton() {
         view.addSubview(backButton)
         
         NSLayoutConstraint.activate([
@@ -128,7 +128,7 @@ final class SingleImageViewController: UIViewController {
         backButton.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
     }
     
-    private func configureShareButton() {
+    private func setupShareButton() {
         view.addSubview(shareButton)
         
         NSLayoutConstraint.activate([

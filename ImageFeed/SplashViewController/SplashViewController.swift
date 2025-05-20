@@ -29,7 +29,7 @@ final class SplashViewController: UIViewController {
         super.viewDidLoad()
         setupAppearance()
         
-        configureLogoImageView()
+        setupLogoImageView()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -82,7 +82,7 @@ final class SplashViewController: UIViewController {
         view.backgroundColor = .ypBlack
     }
     
-    private func configureLogoImageView() {
+    private func setupLogoImageView() {
         view.addSubview(logoImageView)
         
         NSLayoutConstraint.activate([

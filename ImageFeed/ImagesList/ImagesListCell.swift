@@ -66,7 +66,7 @@ final class ImagesListCell: UITableViewCell {
     
     // MARK: - Configuration
     
-    func configureWith(_ imageUrl: URL, andDate date: Date?, andIsLiked isLiked: Bool) {
+    func configureWith(imageUrl: URL, date: Date?, isLiked: Bool) {
 
         cellImage.kf.setImage(
             with: imageUrl,
@@ -80,19 +80,19 @@ final class ImagesListCell: UITableViewCell {
         
         isLikedStatus
             .setImage(
-                UIImage(named: getIsLikedImageName(isLiked: isLiked)),
+                UIImage(named: imageName(forLikedState: isLiked)),
                 for: .normal
             )
     }
     
     func setIsLiked(isLiked: Bool) {
         isLikedStatus.setImage(
-            UIImage(named: getIsLikedImageName(isLiked: isLiked)),
+            UIImage(named: imageName(forLikedState: isLiked)),
             for: .normal
         )
     }
     
-    private func getIsLikedImageName(isLiked: Bool) -> String {
+    private func imageName(forLikedState isLiked: Bool) -> String {
         return isLiked ? "like_button_on" : "like_button_off"
     }
     
