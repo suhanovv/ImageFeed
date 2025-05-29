@@ -64,12 +64,12 @@ final class AuthViewController: UIViewController {
     }
     
     private func setupLayout() {
-        configureLogoImageView()
-        configureLoginButton()
-        configureBackButton()
+        setupLogoImageView()
+        setupLoginButton()
+        setupBackButton()
     }
     
-    private func configureLogoImageView() {
+    private func setupLogoImageView() {
         view.addSubview(logoImageView)
         
         NSLayoutConstraint.activate([
@@ -78,7 +78,7 @@ final class AuthViewController: UIViewController {
         ])
     }
     
-    private func configureLoginButton() {
+    private func setupLoginButton() {
         view.addSubview(loginButton)
         
         NSLayoutConstraint.activate([
@@ -97,7 +97,7 @@ final class AuthViewController: UIViewController {
         navigationController?.pushViewController(viewController, animated: true)
     }
     
-    private func configureBackButton() {
+    private func setupBackButton() {
         navigationController?.navigationBar.backIndicatorImage = UIImage(
             resource: .navBackButtonBlack)
         navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(
@@ -108,6 +108,7 @@ final class AuthViewController: UIViewController {
 }
 
 //MARK: - WebViewViewControllerDelegate
+
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         navigationController?.popViewController(animated: true)

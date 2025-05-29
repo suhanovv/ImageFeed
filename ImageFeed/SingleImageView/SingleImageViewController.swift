@@ -10,17 +10,6 @@ import UIKit
 // MARK: - SingleImageViewController
 
 final class SingleImageViewController: UIViewController {
-    // MARK: - Props
-    
-    private var image: UIImage? {
-        didSet {
-            guard isViewLoaded, let image else { return }
-            imageView.image = image
-            imageView.frame.size = image.size
-            rescaleAndCenterImageInScrollView(image: image)
-        }
-    }
-    
     // MARK: - UI Elements
     
     private lazy var imageView: UIImageView = {
@@ -63,7 +52,7 @@ final class SingleImageViewController: UIViewController {
     }
     
     @objc private func didTapShareButton() {
-        guard let image else { return }
+        guard let image = imageView.image else { return }
         
         let share = UIActivityViewController(
             activityItems: [image],
@@ -77,17 +66,25 @@ final class SingleImageViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupAppearance()
-        configureUI()
-        
-        guard let image else { return }
-        
-        imageView.image = image
-        imageView.frame.size = image.size
-        rescaleAndCenterImageInScrollView(image: image)
+        setupUI()
     }
     
-    func setImage(image: UIImage?) {
-        self.image = image
+    func setImage(imageUrl: URL) {
+        UIBlockingProgressHUD.show()
+        imageView.kf.setImage(with: imageUrl) {[weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self = self else { return }
+            switch result {
+            case .success(let result):
+                self.rescaleAndCenterImageInScrollView(image: result.image)
+
+            case .failure:
+                self.showError {
+                    self.setImage(imageUrl: imageUrl)
+                }
+            }
+        }
     }
     
     // MARK: - Configure UI
@@ -96,14 +93,14 @@ final class SingleImageViewController: UIViewController {
         view.backgroundColor = .ypBlack
     }
     
-    private func configureUI() {
-        configureScrollView()
-        configureImageView()
-        configureBackButton()
-        configureShareButton()
+    private func setupUI() {
+        setupScrollView()
+        setupImageView()
+        setupBackButton()
+        setupShareButton()
     }
     
-    private func configureScrollView() {
+    private func setupScrollView() {
         view.addSubview(scrollView)
         
         NSLayoutConstraint.activate([
@@ -115,11 +112,11 @@ final class SingleImageViewController: UIViewController {
         ])
     }
     
-    private func configureImageView() {
+    private func setupImageView() {
         scrollView.addSubview(imageView)
     }
     
-    private func configureBackButton() {
+    private func setupBackButton() {
         view.addSubview(backButton)
         
         NSLayoutConstraint.activate([
@@ -131,7 +128,7 @@ final class SingleImageViewController: UIViewController {
         backButton.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
     }
     
-    private func configureShareButton() {
+    private func setupShareButton() {
         view.addSubview(shareButton)
         
         NSLayoutConstraint.activate([
@@ -160,6 +157,24 @@ final class SingleImageViewController: UIViewController {
         let x = (newContentSize.width - visibleRectSize.width) / 2
         let y = (newContentSize.height - visibleRectSize.height) / 2
         scrollView.setContentOffset(CGPoint(x: x, y: y), animated: false)
+    }
+    
+    private func showError(retryAction: @escaping (() -> Void)) {
+        let alert = UIAlertController(
+            title: "Что-то пошло не так",
+            message: "Попробовать еще раз,",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Не надо", style: .default))
+        alert
+            .addAction(
+                UIAlertAction(
+                    title: "Повторить",
+                    style: .default,
+                    handler: { _ in retryAction() }
+                )
+            )
+        present(alert, animated: true)
     }
 }
 

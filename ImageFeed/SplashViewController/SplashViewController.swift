@@ -6,14 +6,13 @@
 //
 
 import UIKit
-import SwiftKeychainWrapper
 
 // MARK: - SplashViewController
 
 final class SplashViewController: UIViewController {
     // MARK: - Properties
     
-    private var oauth2TokenStorage = KeychainWrapper.standard
+    private var oauth2TokenStorage = Oauth2TokenStorage.shared
     private var profileService: ProfileService = ProfileService.shared
     
     //MARK: - UI Elements
@@ -30,13 +29,13 @@ final class SplashViewController: UIViewController {
         super.viewDidLoad()
         setupAppearance()
         
-        configureLogoImageView()
+        setupLogoImageView()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        guard let token = oauth2TokenStorage.string(forKey: Constants.keychainOAuthTokenKeyName) else {
+        guard let token = oauth2TokenStorage.token else {
             showUnauthorizedArea()
             return
         }
@@ -83,7 +82,7 @@ final class SplashViewController: UIViewController {
         view.backgroundColor = .ypBlack
     }
     
-    private func configureLogoImageView() {
+    private func setupLogoImageView() {
         view.addSubview(logoImageView)
         
         NSLayoutConstraint.activate([
@@ -99,7 +98,7 @@ final class SplashViewController: UIViewController {
 extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         
-        guard let token = oauth2TokenStorage.string(forKey: Constants.keychainOAuthTokenKeyName) else {
+        guard let token = oauth2TokenStorage.token else {
             return
         }
         fetchProfile(token)
@@ -121,11 +120,7 @@ extension SplashViewController: AuthViewControllerDelegate {
                 )
                 present(alert, animated: true)
                 Logger.error(error)
-                
             }
-            
         }
-        
     }
-
 }
