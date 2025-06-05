@@ -78,11 +78,7 @@ final class ImagesListCell: UITableViewCell {
             imageDate.text = date.imageCellDateString()
         }
         
-        isLikedStatus
-            .setImage(
-                UIImage(named: imageName(forLikedState: isLiked)),
-                for: .normal
-            )
+        setIsLiked(isLiked: isLiked)
     }
     
     func setIsLiked(isLiked: Bool) {
@@ -90,6 +86,7 @@ final class ImagesListCell: UITableViewCell {
             UIImage(named: imageName(forLikedState: isLiked)),
             for: .normal
         )
+        isLikedStatus.accessibilityIdentifier = isLiked ? "like button off" : "like button on"
     }
     
     private func imageName(forLikedState isLiked: Bool) -> String {
