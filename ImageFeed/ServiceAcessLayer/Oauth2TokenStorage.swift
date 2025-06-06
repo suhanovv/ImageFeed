@@ -8,14 +8,19 @@
 import Foundation
 import SwiftKeychainWrapper
 
-final class Oauth2TokenStorage {
+protocol Oauth2TokenStorageProtocol: AnyObject {
+    var token: String? { get set }
+}
+
+final class Oauth2TokenStorage: Oauth2TokenStorageProtocol {
     static let shared = Oauth2TokenStorage()
+    private let keyName = "oauthToken"
     
     private init() {}
     
     var token: String? {
         get {
-            guard let token = KeychainWrapper.standard.string(forKey: Constants.keychainOAuthTokenKeyName) else {
+            guard let token = KeychainWrapper.standard.string(forKey: keyName) else {
                 Logger.info("No OAuth2 token found in keychain")
                 return nil
             }
@@ -24,9 +29,9 @@ final class Oauth2TokenStorage {
         set {
             if let newValue {
                 KeychainWrapper.standard
-                    .set(newValue, forKey: Constants.keychainOAuthTokenKeyName)
+                    .set(newValue, forKey: keyName)
             } else {
-                KeychainWrapper.standard.removeObject(forKey: Constants.keychainOAuthTokenKeyName)
+                KeychainWrapper.standard.removeObject(forKey: keyName)
             }
         }
     }

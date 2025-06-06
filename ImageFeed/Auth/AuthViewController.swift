@@ -11,7 +11,7 @@ import SwiftKeychainWrapper
 // MARK: - Delegate Protocols
 
 protocol AuthViewControllerDelegate: AnyObject {
-    func didAuthenticate(_ vc: AuthViewController)
+    func didAuthenticate()
 }
 
 // MARK: - AuthViewController
@@ -45,6 +45,7 @@ final class AuthViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .bold)
         button.layer.cornerRadius = 16
         button.layer.masksToBounds = true
+        button.accessibilityIdentifier = "Authenticate"
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -92,7 +93,7 @@ final class AuthViewController: UIViewController {
     }
     
     @objc private func loginButtonTapped() {
-        let viewController = WebViewViewController()
+        guard let viewController = WebViewViewControllerFactory().make() as? WebViewViewController else { return }
         viewController.delegate = self
         navigationController?.pushViewController(viewController, animated: true)
     }
@@ -115,11 +116,11 @@ extension AuthViewController: WebViewViewControllerDelegate {
         UIBlockingProgressHUD.show()
         oauth2Service.fetchAuthToken(from: code) { [weak self] result in
             UIBlockingProgressHUD.dismiss()
-            guard let self = self else { return }
+            guard let self else { return }
             switch result {
             case .success(let token):
-                KeychainWrapper.standard.set(token, forKey: Constants.keychainOAuthTokenKeyName)
-                delegate?.didAuthenticate(self)
+                Oauth2TokenStorage.shared.token = token
+                delegate?.didAuthenticate()
             case .failure(let error):
                 Logger.error("Error fetching token: \(error)")
                 let alert = buildAllert(

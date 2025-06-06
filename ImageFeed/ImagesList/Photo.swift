@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Photo {
+struct Photo: Equatable {
     let id: String
     let size: CGSize
     let createdAt: Date?
@@ -19,7 +19,7 @@ struct Photo {
 
 extension Photo {
     func toggledLike() -> Photo {
-        Photo(
+        let newPhoto = Photo(
             id: id,
             size: size,
             createdAt: createdAt,
@@ -28,5 +28,7 @@ extension Photo {
             largeImageURL: largeImageURL,
             isLiked: !isLiked
         )
+        return newPhoto
+        
     }
 }

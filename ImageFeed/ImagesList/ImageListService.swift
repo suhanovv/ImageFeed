@@ -7,42 +7,19 @@
 
 import Foundation
 
-// MARK: - Response Objects
+// MARK: - ImageListServiceProtocol
 
-private struct PhotosResponse: Decodable {
-    let id: String
-    let width: Int
-    let height: Int
-    let createdAt: Date?
-    let description: String?
-    let urls: PhotoUrlsResponse
-    let likedByUser: Bool
-    
-    func toPhoto() -> Photo {
-        return Photo(
-            id: id,
-            size: CGSize(width: width, height: height),
-            createdAt: createdAt,
-            description: description,
-            thumbImageURL: urls.thumb,
-            largeImageURL: urls.full,
-            isLiked: likedByUser
-        )
-    }
-}
-
-private struct PhotoUrlsResponse: Decodable {
-    let thumb: String
-    let full: String
-}
-
-private struct ChangeLikePhotosResponse: Decodable {
-    let photo: PhotosResponse
+protocol ImageListServiceProtocol: AnyObject {
+    var photos: [Photo] { get }
+    func fetchPhotosNextPage()
+    func changeLike(photoId: String, isLike: Bool, completion: @escaping (Result<Void, Error>) -> Void)
+    func logout()
 }
 
 // MARK: - ImageListService
 
-final class ImageListService {
+final class ImageListService: ImageListServiceProtocol {
+
     // MARK: - Constants && Properties
     
     static let didChangeNotification = Notification.Name("ImageListServiceDidChange")
@@ -110,8 +87,7 @@ final class ImageListService {
     private func makeImageListRequest(forPageNumber pageNumber: Int, andPerPageCount perPageCount: Int, andToken token: String) -> URLRequest? {
         
         guard
-            let baseUrl = Constants.defaultBaseURL,
-            var urlComponents = URLComponents(url: baseUrl.appendingPathComponent(photosApiUrl), resolvingAgainstBaseURL: true)
+            var urlComponents = URLComponents(url: Constants.defaultBaseURL.appendingPathComponent(photosApiUrl), resolvingAgainstBaseURL: true)
         else {
             Logger.error("Error creating URLComponents")
             return nil
@@ -140,7 +116,7 @@ final class ImageListService {
     
     // MARK: - Likes
     
-    func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void) {
+    func changeLike(photoId: String, isLike: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
         assert(Thread.isMainThread)
 
         guard let token = oauth2TokenStorage.token else {
@@ -167,9 +143,7 @@ final class ImageListService {
     }
     
     private func makeToggleLikeRequest(photoId: String, andToken token: String, isLike: Bool) -> URLRequest? {
-        guard let defaultURL = Constants.defaultBaseURL else {
-            return nil
-        }
+        let defaultURL = Constants.defaultBaseURL
         
         let url = defaultURL.appendingPathComponent(
             self.likesApiUrl.replacingOccurrences(of: ":id", with: photoId)

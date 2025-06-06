@@ -24,9 +24,17 @@ struct PublicProfileResponse: Decodable {
     let profileImage: ProfileImageResponse
 }
 
+// MARK: - Protocols
+
+protocol ProfileImageServiceProtocol {
+    var avatarURL: String? { get }
+    func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, Error>) -> Void)
+    func logout()
+}
+
 // MARK: - ProfileImageService
 
-final class ProfileImageService {
+final class ProfileImageService: ProfileImageServiceProtocol {
     // MARK: Properties
     
     static let shared = ProfileImageService()
@@ -87,9 +95,7 @@ final class ProfileImageService {
     }
     
     private func makeUrlRequestForImage(username: String, token: String) -> URLRequest? {
-        guard let defaultURL = Constants.defaultBaseURL else {
-            return nil
-        }
+        let defaultURL = Constants.defaultBaseURL
         
         let url = defaultURL.appendingPathComponent(self.publicProfileApiURL.replacingOccurrences(of: ":username", with: username))
         var request = URLRequest(url: url)

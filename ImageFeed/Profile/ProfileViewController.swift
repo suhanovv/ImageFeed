@@ -8,14 +8,24 @@
 import UIKit
 import Kingfisher
 
+// MARK: - Protocols
+
+protocol ProfileViewControllerProtocol: AnyObject {
+    var presenter: ProfileViewPresenterProtocol? { get set }
+    
+    func showLogoutAlert(okHandler: @escaping (() -> Void))
+    func updateName(name: String)
+    func updateLogin(login: String)
+    func updateAvatar(url: URL)
+    func updateDescription(description: String)
+    func navigateToSplashScreen()
+}
+
 // MARK: - ProfileViewController
 
 final class ProfileViewController: UIViewController {
     // MARK: - Properties
-    
-    private var profileService: ProfileService = ProfileService.shared
-    private var profileImageServiceObserver: NSObjectProtocol?
-    private let profileLogoutService = ProfileLogoutService.shared
+    var presenter: ProfileViewPresenterProtocol?
     
     // MARK: - UI elements
     
@@ -35,6 +45,7 @@ final class ProfileViewController: UIViewController {
         label.text = "Екатерина Новикова"
         label.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         label.textColor = .ypWhite
+        label.accessibilityIdentifier = "Name"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -43,6 +54,7 @@ final class ProfileViewController: UIViewController {
         label.text = "@ekaterina_novikova"
         label.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         label.textColor = .ypGray
+        label.accessibilityIdentifier = "@username"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -58,6 +70,7 @@ final class ProfileViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setImage(UIImage(named: "exit_button") ?? UIImage(), for: .normal)
         button.tintColor = .ypRed
+        button.accessibilityIdentifier = "logout button"
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -68,52 +81,14 @@ final class ProfileViewController: UIViewController {
         super.viewDidLoad()
         setupAppearance()
         setupLayout()
-        
-        subscribeToAvatarUpdates()
-        
-        updateProfileData()
-        updateAvatar()
+
+        presenter?.viewDidLoad()
     }
     
     // MARK: - actions
     
     @objc private func didTapLogoutButton() {
-        
-        let alert = UIAlertController(
-            title: "Пока, пока!",
-            message: "Уверены что хотите выйти?",
-            preferredStyle: .alert
-        )
-        
-        alert.addAction(UIAlertAction(title: "Да", style: .cancel, handler: { [weak self] _ in
-            self?.profileLogoutService.logout()
-            self?.showSplashScreen()
-        }))
-        
-        alert.addAction(UIAlertAction(title: "Нет", style: .default))
-        
-        present(alert, animated: true)
-        
-    }
-    
-    private func showSplashScreen() {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
-            assertionFailure("Unable to get UIWindow")
-            return
-        }
-        
-        let splashViewController = SplashViewController()
-        window.rootViewController = splashViewController
-        
-        UIView
-            .transition(
-                with: window,
-                duration: 0.3,
-                options: .transitionCrossDissolve,
-                animations: nil,
-                completion: nil
-            )
+        presenter?.logout()
     }
     
     // MARK: - Setup UI Elements
@@ -121,6 +96,7 @@ final class ProfileViewController: UIViewController {
     private func setupAppearance() {
         view.backgroundColor = .ypBlack
     }
+    
     private func setupLayout() {
         setupAvatarView()
         setupLogoutButton()
@@ -179,38 +155,65 @@ final class ProfileViewController: UIViewController {
             descriptionLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor)
         ])
     }
-    
-    // MARK: - Profile and Avatar update handlers
-    
-    private func subscribeToAvatarUpdates() {
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                guard let self = self else { return }
-                self.updateAvatar()
+}
+
+// MARK: - ProfileViewControllerProtocol
+
+extension ProfileViewController: ProfileViewControllerProtocol {
+    func updateName(name: String) {
+        nameLabel.text = name
+    }
+
+    func updateLogin(login: String) {
+        loginNameLabel.text = login
+    }
+
+    func updateAvatar(url: URL) {
+        avatarImageView.kf.setImage(with: url)
+    }
+
+    func updateDescription(description: String) {
+        descriptionLabel.text = description
+    }
+
+    func showLogoutAlert(okHandler: @escaping (() -> Void)) {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены что хотите выйти?",
+            preferredStyle: .alert
+        )
+        let yesAction = UIAlertAction(
+            title: "Да",
+            style: .cancel,
+            handler: { _ in
+                okHandler()
             }
+        )
+        yesAction.accessibilityIdentifier = "Yes"
+        alert.addAction(yesAction)
+        alert.addAction(UIAlertAction(title: "Нет", style: .default))
+        
+        present(alert, animated: true)
     }
     
-    private func updateProfileData() {
-        guard let profile = profileService.profile else {
+    func navigateToSplashScreen() {
+        let splashViewController = SplashViewControllerFactory().make()
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            assertionFailure("Unable to get UIWindow")
             return
         }
-        nameLabel.text = profile.fullName
-        loginNameLabel.text = profile.loginName
-        descriptionLabel.text = profile.bio
+        window.rootViewController = splashViewController
+    
+        UIView
+            .transition(
+                with: window,
+                duration: 0.3,
+                options: .transitionCrossDissolve,
+                animations: nil,
+                completion: nil
+            )
     }
     
-    private func updateAvatar() {
-        guard let profileImageURL = ProfileImageService.shared.avatarURL,
-              let url = URL(string: profileImageURL)
-        else { return }
-        Logger.info("Updating avatar from \(url)")
-        avatarImageView.kf.setImage(
-            with: url
-        )
-    }
 }
 

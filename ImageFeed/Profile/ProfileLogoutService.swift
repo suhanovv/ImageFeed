@@ -8,16 +8,20 @@
 import Foundation
 import WebKit
 
+// MARK: - Protocols
 
-final class ProfileLogoutService {
-    static let shared = ProfileLogoutService()
+protocol ProfileLogoutServiceProtocol {
+    func logout()
+}
+
+// MARK: - ProfileLogoutService
+
+final class ProfileLogoutService: ProfileLogoutServiceProtocol {
     private let profileImageService = ProfileImageService.shared
     private let profileService = ProfileService.shared
     private let imageListService = ImageListService.shared
     private let oauthTokenStorage = Oauth2TokenStorage.shared
-    
-    private init() {}
-    
+
     func logout() {
         cleanCookies()
         oauthTokenStorage.token = nil

@@ -24,9 +24,17 @@ struct ProfileResponse: Decodable {
     let bio: String?
 }
 
+// MARK: - Protocols
+
+protocol ProfileServiceProtocol {
+    var profile: Profile? { get }
+    func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void)
+    func logout()
+}
+
 // MARK: - ProfileService
 
-final class ProfileService {
+final class ProfileService: ProfileServiceProtocol {
     // MARK: - Properties
     
     static let shared = ProfileService()
@@ -72,9 +80,7 @@ final class ProfileService {
     }
     
     private func makeCurrentUserRequest(token: String) -> URLRequest? {
-        guard let defaultURL = Constants.defaultBaseURL else {
-            return nil
-        }
+        let defaultURL = Constants.defaultBaseURL
         let url = defaultURL.appendingPathComponent(currentUserURI)
         var request = URLRequest(url: url)
         request.httpMethod = HTTPMethod.get.rawValue
