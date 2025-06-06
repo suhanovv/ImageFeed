@@ -46,7 +46,7 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        guard let presenter = presenter else { return }
+        guard let presenter else { return }
         if presenter.isAuthorized() {
             presenter.loadProfile()
         } else {

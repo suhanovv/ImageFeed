@@ -6,7 +6,7 @@
 //
 import UIKit
 
-class ProfileViewControllerFactory: ViewControllerFactoryProtocol {
+final class ProfileViewControllerFactory: ViewControllerFactoryProtocol {
     func make() -> UIViewController {
         let profileViewPresenter = ProfileViewPresenter(
             logoutService: ProfileLogoutService(),

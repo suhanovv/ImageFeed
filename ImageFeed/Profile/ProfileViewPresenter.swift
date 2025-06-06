@@ -44,6 +44,17 @@ final class ProfileViewPresenter: ProfileViewPresenterProtocol {
         updateAvatar()
     }
     
+    private func subscribeToAvatarUpdates() {
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.updateAvatar()
+            }
+    }
+    
     private func updateProfileData() {
         guard let profile = profileService.profile else {
             return
@@ -66,16 +77,5 @@ final class ProfileViewPresenter: ProfileViewPresenterProtocol {
             self?.profileLogoutService.logout()
             self?.view?.navigateToSplashScreen()
         }
-    }
-    
-    private func subscribeToAvatarUpdates() {
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                self?.updateAvatar()
-            }
     }
 }

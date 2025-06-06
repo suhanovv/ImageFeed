@@ -8,7 +8,7 @@
 import UIKit
 
 
-class SplashViewControllerFactory: ViewControllerFactoryProtocol {
+final class SplashViewControllerFactory: ViewControllerFactoryProtocol {
     func make() -> UIViewController {
         let splashViewPresenter = SplashViewPresenter(
             profileService: ProfileService.shared,

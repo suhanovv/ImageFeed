@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ImagesListViewControllerFactory: ViewControllerFactoryProtocol {
+final class ImagesListViewControllerFactory: ViewControllerFactoryProtocol {
     func make() -> UIViewController {
         let imagesListViewPresenter = ImagesListViewPresenter(
             imageService: ImageListService.shared

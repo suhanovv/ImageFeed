@@ -7,7 +7,7 @@
 
 import UIKit
 
-class WebViewViewControllerFactory: ViewControllerFactoryProtocol {
+final class WebViewViewControllerFactory: ViewControllerFactoryProtocol {
     func make() -> UIViewController {
         let viewController = WebViewViewController()
         let authHelper = AuthHelper()
